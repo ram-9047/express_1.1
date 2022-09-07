@@ -28,17 +28,50 @@ module.exports = class Cart {
       if (existingProduct) {
         updatedProduct = { ...existingProduct };
         updatedProduct.qty = updatedProduct.qty + 1;
+        // console.log(updatedProduct.qty);
         cart.products = [...cart.products];
-        cart.products[existingProduct] = updatedProduct;
+        cart.products[existingProductIndex] = updatedProduct;
       } else {
         updatedProduct = { id: id, qty: 1 };
         cart.products = [...cart.products, updatedProduct];
       }
-      cart.totalPrice = cart.productPrice + productPrice;
+      cart.totalPrice = cart.totalPrice + +productPrice;
       fs.writeFile(p, JSON.stringify(cart), (err) => {
         console.log(err);
       });
     });
     // Step 3 =  Add the product or increase the quantity of product
   }
+
+  static deleteProduct = (id, productPrice) => {
+    fs.readFile(p, (err, fileContent) => {
+      // error means there is nothing to delete in cart, as the product is not added in the cart
+      if (err) {
+        return;
+      }
+
+      // if there is no error means product is avail in the cart
+      // step-1 => copy the cart
+      const updatedCart = { ...JSON.parse(fileContent) };
+      console.log(updatedCart, "updated cart");
+
+      // step-2 => find that product
+      const product = updatedCart.products.find((prod) => prod.id == id);
+
+      // step-3 => fint the quantity of product
+      const productQty = product.qty;
+
+      //step-4 => remove the product from updatedCart using filter() method
+      updatedCart.products = updatedCart.products.filter(
+        (product) => product.id !== id
+      );
+
+      // step-5 => update the price of the cart
+      updatedCart.totalPrice =
+        updatedCart.totalPrice - productQty * productPrice;
+      fs.writeFile(p, JSON.stringify(updatedCart), (err) => {
+        console.log(err, "error in removing product from cart");
+      });
+    });
+  };
 };
